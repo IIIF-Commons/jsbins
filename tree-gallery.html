@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>IIIF Components Demo</title>
+  
+  <link rel="stylesheet" type="text/css" href="https://rawgit.com/viewdir/iiif-tree-component/master/dist/iiif-tree-component.css" />
+  <link rel="stylesheet" type="text/css" href="https://rawgit.com/viewdir/iiif-gallery-component/master/dist/iiif-gallery-component.css" />
+
+  <style>
+    #tree {
+      margin-bottom: 20px;
+    }
+
+    #gallery .thumb.selected .wrap {
+      border: 2px solid red;
+    }
+  </style>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsviews/0.9.76/jsviews.min.js"></script>
+  <script src="https://rawgit.com/viewdir/manifold/es6/dist/manifold.bundle.js"></script>
+  <script src="https://rawgit.com/viewdir/iiif-tree-component/es6/dist/iiif-tree-component.bundle.js"></script>
+  <script src="https://rawgit.com/viewdir/iiif-gallery-component/es6/dist/iiif-gallery-component.bundle.js"></script>
+</head>
+<body>
+  
+  <div id="tree" class="iiif-tree-component"></div>
+  
+  <div id="gallery" class="iiif-gallery-component"></div>
+  
+  <script>
+
+    $(function() {
+
+      Manifold.loadManifest({
+        iiifResourceUri: 'http://wellcomelibrary.org/iiif/b18035723/manifest'
+      }).then(function(helper){
+
+        var treeComponent = new IIIFComponents.TreeComponent({
+          target: document.querySelector('#tree'),
+          data: {
+            helper: helper
+          }
+        });
+
+        treeComponent.on("treeNodeSelected", function(node) {
+          treeComponent.selectNode(node);
+          var path = node.data.path; // tree node not necessarily a range, could be a manifest or collection
+          var range = helper.getRangeByPath(path);
+          var canvasId = range.getCanvasIds()[0]; // get the first canvas belonging to this range
+          var index = helper.getCanvasIndexById(canvasId);
+          galleryComponent.selectIndex(index);
+        });
+
+        treeComponent.set();
+  
+        var galleryComponent = new IIIFComponents.GalleryComponent({
+          target: document.querySelector('#gallery'),
+          data: {
+            helper: helper,
+            initialZoom: 3
+          }
+        });
+
+        galleryComponent.set();
+
+      }).catch(function() {
+        console.error('something went wrong');
+      });
+
+    });
+  </script>
+</body>
+</html>
